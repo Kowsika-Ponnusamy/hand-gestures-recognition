@@ -3,29 +3,28 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 
+import os
 import numpy as np
-from PIL import Image
+import cv2
 
 
 # Label: [0->5]
-CLASSES = range(6)
+DATA_DIR = 'data'
+LABELS = open(os.path.join(DATA_DIR, 'labels.txt'), 'r').read().split('\n')[:-1]
 
 
 def predict(model, X):
     """Arguments
         X: numpy image, shape (H, W, C)
     """
-    # resize to (64x64x3)
-    X = Image.fromarray(X)
-    transform = transforms.Resize(64)
-    X = transform(X)
-
-    # reshape
-    X = np.asarray(X)
-    shape = X.shape
-    X = X.reshape((1, shape[2], shape[0], shape[1]))
+    # gray
+    # X = cv2.cvtColor(X, cv2.COLOR_BGR2GRAY)
+    # rescale
+    X = cv2.resize(X, (64, 64))
     # normalize
     X = X / 255.
+    # reshape
+    X = np.reshape(X, (1, 1, 64, 64))
 
     X = torch.from_numpy(X.astype('float32'))
     X = Variable(X, volatile=True)
@@ -35,7 +34,7 @@ def predict(model, X):
 
     # get index of the max
     _, index = output.data.max(1, keepdim=True)
-    return CLASSES[index[0][0]] # index is a LongTensor -> need to get int data
+    return LABELS[index[0][0]] # index is a LongTensor -> need to get int data
 
 
 class CNN(nn.Module):
@@ -43,7 +42,7 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=5),
+            nn.Conv2d(1, 16, kernel_size=5),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.MaxPool2d(2)
@@ -56,9 +55,13 @@ class CNN(nn.Module):
         )
         self.fc1 = nn.Sequential(
             nn.Linear(32*13*13, 1024),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Dropout(p=0.5)
         )
-        self.fc2 = nn.Linear(1024, len(CLASSES))
+        self.fc2 = nn.Sequential(
+            nn.Linear(1024, len(LABELS)),
+            nn.Dropout(p=0.5)
+        )
 
     def forward(self, x):
         out = self.layer1(x)

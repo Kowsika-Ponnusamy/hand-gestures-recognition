@@ -35,13 +35,13 @@ def skin_mask(roi):
 
 def main():
     # Load pre-trained model
-    # if not os.path.exists(MODEL_PATH):
-    #     print("'{}' not found".format(MODEL_PATH))
-    #     return
+    if not os.path.exists(MODEL_PATH):
+        print("'{}' not found".format(MODEL_PATH))
+        return
 
-    # model = CNN()
-    # print(model)
-    # model.load_state_dict(torch.load(MODEL_PATH))
+    model = CNN()
+    print(model)
+    model.load_state_dict(torch.load(MODEL_PATH))
 
     # Camera
     cap = cv2.VideoCapture(0)
@@ -58,11 +58,15 @@ def main():
         roi = frame[top_left[0]:bottom_right[0], top_left[1]:bottom_right[1]]
         # Preprocess roi
         roi = skin_mask(roi)
-        # shơw it
-        cv2.imshow('ROI', roi)
 
-        # Predict and show result
-        # print(predict(model, roi))
+        # Predict
+        # label = predict(model, roi)
+        label = '0'
+
+        # Show result right on ROI
+        cv2.putText(roi, label, (10, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.imshow('ROI', roi)
 
         # Draw ROI
         cv2.rectangle(frame, top_left, bottom_right, (0,255,0), 1)
