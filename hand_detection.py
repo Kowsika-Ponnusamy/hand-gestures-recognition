@@ -60,8 +60,7 @@ def main():
         roi = skin_mask(roi)
 
         # Predict
-        # label = predict(model, roi)
-        label = '0'
+        label = predict(model, roi)
 
         # Show result right on ROI
         cv2.putText(roi, label, (10, 50),
