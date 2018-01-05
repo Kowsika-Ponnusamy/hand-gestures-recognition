@@ -18,7 +18,7 @@ def predict(model, X):
         X: numpy image, shape (H, W, C)
     """
     # gray
-    # X = cv2.cvtColor(X, cv2.COLOR_BGR2GRAY)
+    X = cv2.cvtColor(X, cv2.COLOR_BGR2GRAY)
     # rescale
     X = cv2.resize(X, (64, 64))
     # normalize
